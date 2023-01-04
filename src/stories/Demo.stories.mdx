@@ -1,0 +1,101 @@
+import {Meta, Story, Canvas} from '@storybook/addon-docs'
+
+import {Input} from '../Input'
+
+<Meta title="Demo/Embeding stories" />
+
+# Explanation
+
+When stories are embedded in MDX from other files the resulting wrapping that
+the `Canvas` does will use different mechanics to decide content size in
+different browser.
+
+When the `zoom` css property is available it will be used. When it isn't, height
+is decided [based on the size of the component the story
+renders](https://github.com/storybookjs/storybook/blob/next/code/ui/components/src/Zoom/ZoomElement.tsx#L66).
+However that seems to not be working correctly, as on Firefox this always result
+to the wrapping `div` having a `height` property of `20` and the css `height`
+property for it being set to `70`
+([this](https://github.com/storybookjs/storybook/blob/next/code/ui/components/src/Zoom/ZoomElement.tsx#L17)
+seems to just add `50px` to the height)
+
+## Inlining an embedded story
+
+If the story is directly inlined in the MDX file using the following code it
+will render properly on all browsers.
+
+```mdx
+<Canvas>
+  <Story name="inlined-demo">
+    {() => {
+      return (
+        <>
+          <Input label="one" />
+          <Input label="two" />
+          <Input label="three" />
+          <Input label="four" />
+          <Input label="five" />
+          <Input label="six" />
+          <Input label="seven" />
+        </>
+      )
+    }}
+  </Story>
+</Canvas>
+```
+
+Note that if you inspect the DOM for the rendered story below you will see the
+parent `div` of the `.innerZoomElementWrapper` `div` has a `height` of `216`,
+likely correctly calculated based on the rendered story's actual height.
+
+<Canvas>
+  <Story name="inlined-demo">
+    {() => {
+      return (
+        <>
+          <Input label="one" />
+          <Input label="two" />
+          <Input label="three" />
+          <Input label="four" />
+          <Input label="five" />
+          <Input label="six" />
+          <Input label="seven" />
+        </>
+      )
+    }}
+  </Story>
+</Canvas>
+
+## Embedding a story from another file
+
+Here is how this looks when a story from a different file is embedded using the
+following syntax:
+
+```mdx
+<Canvas>
+  <Story id="demo-input--demo" />
+</Canvas>
+```
+
+Here if you inspect the DOM, the same `div` that has a `height` of `216` above
+has a `height` of `20`. I'd guess that's some default minimum value set when the
+story's actual height can't be determined.
+
+<Canvas>
+  <Story id="demo-input--demo" />
+</Canvas>
+
+## Referencing a story from the same file
+
+If however we reference a story from the same file, its height is correctly
+determined:
+
+```mdx
+<Canvas>
+  <Story id="demo-embeding-stories--inlined-demo" />
+</Canvas>
+```
+
+<Canvas>
+  <Story id="demo-embeding-stories--inlined-demo" />
+</Canvas>
